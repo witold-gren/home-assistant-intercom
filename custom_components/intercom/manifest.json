@@ -1,0 +1,14 @@
+{
+  "domain": "intercom",
+  "name": "Intercom",
+  "codeowners": ["@witold-gren"],
+  "config_flow": true,
+  "dependencies": ["http", "frontend", "media_source", "tts"],
+  "documentation": "https://github.com/witold-gren/home-assistant-intercom",
+  "integration_type": "service",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/witold-gren/home-assistant-intercom/issues",
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "0.1.0"
+}

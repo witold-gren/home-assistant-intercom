@@ -1,0 +1,82 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Interkom",
+        "description": "Wiadomości głosowe do pokojów w domu. Znaleziono {rooms} pokoi z głośnikiem; możesz je później zmienić w opcjach."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Interkom jest już skonfigurowany."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Interkom",
+        "menu_options": {
+          "room": "Pokój i jego głośniki",
+          "settings": "Głos i nagrania"
+        }
+      },
+      "room": {
+        "title": "Pokój",
+        "description": "Wybierz pokój do zmiany albo dodania.",
+        "data": {
+          "area": "Pokój"
+        }
+      },
+      "speakers": {
+        "title": "Głośniki: {room}",
+        "description": "Wiadomość odtwarza pierwszy działający głośnik. Głośniki, które nie radzą sobie z mową przesyłaną strumieniowo (Apple TV / HomePod), dostają całą wypowiedź jako plik.",
+        "data": {
+          "speakers": "Głośniki, w kolejności",
+          "file_speakers": "Odtwarzaj jako cały plik",
+          "volume": "Głośność wiadomości",
+          "remove": "Usuń ten pokój"
+        },
+        "data_description": {
+          "volume": "Puste zostawia głośność głośnika bez zmian. Satelity głosowe mają własną."
+        }
+      },
+      "settings": {
+        "title": "Głos i nagrania",
+        "data": {
+          "tts_engine": "Silnik zamiany tekstu na mowę",
+          "language": "Język głosu",
+          "keep_minutes": "Przechowuj nagrania (minuty)"
+        },
+        "data_description": {
+          "tts_engine": "Puste: pierwszy silnik w Home Assistant.",
+          "language": "Puste: język Home Assistant.",
+          "keep_minutes": "Nagrane i wypowiedziane wiadomości są usuwane po tym czasie."
+        }
+      }
+    }
+  },
+  "services": {
+    "announce": {
+      "name": "Ogłoś",
+      "description": "Wypowiada tekst albo odtwarza nagranie w pokojach: w każdym na pierwszym działającym głośniku.",
+      "fields": {
+        "areas": {
+          "name": "Pokoje",
+          "description": "Pokoje (obszary) albo encje w nich."
+        },
+        "message": {
+          "name": "Wiadomość",
+          "description": "Tekst do wypowiedzenia."
+        },
+        "media": {
+          "name": "Nagranie",
+          "description": "Identyfikator mediów zamiast tekstu, np. media-source://media_source/local/wiadomosc.wav."
+        },
+        "volume": {
+          "name": "Głośność",
+          "description": "0-1 dla tej wiadomości; puste używa głośności pokoju."
+        }
+      }
+    }
+  },
+  "exceptions": {}
+}

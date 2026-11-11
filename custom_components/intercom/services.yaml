@@ -1,0 +1,21 @@
+announce:
+  fields:
+    areas:
+      required: true
+      selector:
+        area:
+          multiple: true
+    message:
+      selector:
+        text:
+          multiline: true
+    media:
+      selector:
+        text:
+    volume:
+      selector:
+        number:
+          min: 0
+          max: 1
+          step: 0.05
+          mode: slider

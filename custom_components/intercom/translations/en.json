@@ -1,0 +1,82 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Intercom",
+        "description": "Voice messages to the rooms of the house. {rooms} rooms with a speaker were found; you can change them later in the options."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Intercom is already set up."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Intercom",
+        "menu_options": {
+          "room": "A room and its speakers",
+          "settings": "Voice and recordings"
+        }
+      },
+      "room": {
+        "title": "Room",
+        "description": "Choose the room to change or add.",
+        "data": {
+          "area": "Room"
+        }
+      },
+      "speakers": {
+        "title": "Speakers: {room}",
+        "description": "The first speaker that is up plays the message. Speakers that drop streamed speech (an Apple TV / HomePod) get the whole spoken message as a file.",
+        "data": {
+          "speakers": "Speakers, in order",
+          "file_speakers": "Play as a whole file",
+          "volume": "Volume of messages",
+          "remove": "Remove this room"
+        },
+        "data_description": {
+          "volume": "Empty leaves the speaker's volume as it is. Voice satellites keep their own."
+        }
+      },
+      "settings": {
+        "title": "Voice and recordings",
+        "data": {
+          "tts_engine": "Text-to-speech engine",
+          "language": "Language of the voice",
+          "keep_minutes": "Keep recordings (minutes)"
+        },
+        "data_description": {
+          "tts_engine": "Empty: the first engine of Home Assistant.",
+          "language": "Empty: the language of Home Assistant.",
+          "keep_minutes": "Recorded and spoken messages are removed after this time."
+        }
+      }
+    }
+  },
+  "services": {
+    "announce": {
+      "name": "Announce",
+      "description": "Speaks a text, or plays a recording, in rooms: each on the first of its speakers that is up.",
+      "fields": {
+        "areas": {
+          "name": "Rooms",
+          "description": "The rooms (areas), or entities in them."
+        },
+        "message": {
+          "name": "Message",
+          "description": "The text to speak."
+        },
+        "media": {
+          "name": "Recording",
+          "description": "A media id to play instead of a text, e.g. media-source://media_source/local/message.wav."
+        },
+        "volume": {
+          "name": "Volume",
+          "description": "0-1 for this message; empty uses the room's volume."
+        }
+      }
+    }
+  },
+  "exceptions": {}
+}

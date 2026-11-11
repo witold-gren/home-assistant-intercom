@@ -1,0 +1,15 @@
+line-length = 100
+target-version = "py313"
+
+[lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003"]
+
+[lint.isort]
+force-sort-within-sections = true
+known-first-party = ["custom_components"]
+combine-as-imports = true
+
+[lint.per-file-ignores]
+# The fake Home Assistant of the card tests is JavaScript in a string
+"tests_browser/*" = ["E501"]

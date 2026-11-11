@@ -1,0 +1,5 @@
+pytest-homeassistant-custom-component==0.13.316
+mutagen
+ha-ffmpeg
+playwright==1.64.1
+ruff
