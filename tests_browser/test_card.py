@@ -142,3 +142,17 @@ def test_the_window_fits_a_phone(browser: Browser) -> None:
         }"""
     )
     assert box["left"] >= 0 and box["right"] <= 360, box
+
+
+def test_recording_goes_on_after_done(browser: Browser) -> None:
+    """The last syllable is often said as Done is tapped: the recording keeps a short tail."""
+    page = open_card(browser, {"areas": ["living_room"]})
+    page.locator("intercom-card ha-card").click()
+    sheet = page.locator("intercom-sheet")
+    sheet.locator(".stop").wait_for()
+    page.wait_for_timeout(1200)
+    sheet.locator(".stop").click()
+    page.wait_for_function("() => window.calls.some((c) => c.url)")
+    size = page.evaluate("window.calls.find((c) => c.url).size")
+    seconds = (size - 44) / 2 / 24000  # the card's WAV: 24 kHz mono 16-bit
+    assert seconds >= 1.6, f"{seconds:.2f} s recorded"

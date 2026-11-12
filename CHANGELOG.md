@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.6
+
+- The end of a recorded message is no longer cut off: the card goes on recording for half a second
+  after **Done**. Stopping at once lost the last syllable (often still being said as Done is tapped)
+  and the sound still on its way from the microphone, about 0.2 s, before the message ever reached
+  Home Assistant.
+
 ## 0.1.5
 
 - The voice step also shows for an engine that knows the language only by its full code (Piper

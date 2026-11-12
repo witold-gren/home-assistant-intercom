@@ -126,6 +126,11 @@ pokoju: dostanie wtedy całą wypowiedź zamiast strumienia.
 Assist Router albo jest starszy niż 0.1.5. Wybierz Assist Router w ustawieniach asystenta głosowego;
 z innym agentem wywołaj `intercom.announce` z wyzwalacza zdaniem.
 
+**Koniec nagranej wiadomości jest obcięty.** Do wersji 0.1.5 karta przestawała nagrywać w chwili
+dotknięcia **Gotowe**, przez co ginęła ostatnia sylaba i ok. 0,2 s dźwięku jeszcze w drodze z mikrofonu,
+na każdym głośniku. Od 0.1.6 nagrywa pół sekundy dłużej. Dashboard z własnym rejestratorem potrzebuje
+takiego samego ogona.
+
 **Na HomePodzie koniec wiadomości jest obcięty.** Przez AirPlay nadawca zamyka strumień ok. 1,5 s
 po ostatnim dźwięku, a HomePod ma jeszcze w buforze do 2 s. Od wersji 0.1.3 interkom dokłada 2 s
 ciszy na końcu wiadomości WAV dla głośników „całego pliku”: zaznacz HomePoda w *Odtwarzaj jako cały

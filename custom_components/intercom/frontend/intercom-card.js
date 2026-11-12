@@ -7,9 +7,12 @@
 //   name: Living room      # optional
 //   icon: mdi:account-voice
 (() => {
-  const VERSION = "0.1.0";
+  const VERSION = "0.1.6";
   const MAX_SECONDS = 30;
   const MIN_SECONDS = 0.8;
+  // Recording goes on this long after Done: the last syllable is often still being said, and the
+  // microphone's newest sound is still on its way through the audio graph
+  const TAIL_MS = 500;
   const SAMPLE_RATE = 24000;
   const MAX_GAIN = 4;
   const TARGET_PEAK = 0.9;
@@ -150,10 +153,11 @@
       return this.startedAt ? (Date.now() - this.startedAt) / 1000 : 0;
     }
 
-    stop() {
+    async stop() {
+      const seconds = this.seconds;
+      if (seconds >= MIN_SECONDS) await new Promise((resolve) => setTimeout(resolve, TAIL_MS));
       const rate = this.context?.sampleRate;
       const { chunks } = this;
-      const seconds = this.seconds;
       this.cancel();
       return seconds >= MIN_SECONDS && chunks?.length ? encodeWav(chunks, rate) : null;
     }
@@ -279,8 +283,13 @@
 
     async finish() {
       clearInterval(this.waver);
-      const blob = this.recorder?.stop();
+      const recorder = this.recorder;
       this.recorder = null;
+      this.stopping = recorder;
+      this.shadowRoot.querySelector(".action").innerHTML = "";
+      const blob = await recorder?.stop();
+      this.stopping = null;
+      if (this.closed) return;
       if (!blob) {
         this.note(t(this.hass, "too_short"));
         setTimeout(() => this.record(), 900);
@@ -346,8 +355,10 @@
     }
 
     close() {
+      this.closed = true;
       clearInterval(this.waver);
       this.recorder?.cancel();
+      this.stopping?.cancel();
       this.remove();
     }
   }
