@@ -90,7 +90,7 @@ def test_a_room_card_records_and_sends_a_wav(browser: Browser) -> None:
     assert sent["url"] == "/api/intercom/message?areas=living_room"
     assert sent["type"] == "audio/wav"
     assert sent["size"] > 44
-    sheet.locator(".note", has_text="Wysłano").wait_for()
+    sheet.locator(".badge.ok + .label", has_text="Wysłano").wait_for()
     # The window closes by itself
     sheet.wait_for(state="detached")
 
@@ -127,3 +127,18 @@ def test_closing_cancels(browser: Browser) -> None:
     page.locator("intercom-sheet .close").click()
     assert page.locator("intercom-sheet").count() == 0
     assert page.evaluate("window.calls.filter((c) => c.url).length") == 0
+
+
+def test_the_window_fits_a_phone(browser: Browser) -> None:
+    page = open_card(browser, {"areas": ["living_room"]})
+    page.set_viewport_size({"width": 360, "height": 640})
+    page.locator("intercom-card ha-card").click()
+    page.locator("intercom-sheet .stop").wait_for()
+    box = page.evaluate(
+        """() => {
+            const r = document.querySelector("intercom-sheet").shadowRoot
+              .querySelector(".card").getBoundingClientRect();
+            return { left: r.left, right: r.right };
+        }"""
+    )
+    assert box["left"] >= 0 and box["right"] <= 360, box

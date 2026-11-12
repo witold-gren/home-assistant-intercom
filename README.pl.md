@@ -16,6 +16,14 @@ głośniku Google albo satelicie głosowym Home Assistant.
   obszarze; kolejność wybierasz w opcjach.
 - **Głośniki, które nie radzą sobie z mową przesyłaną strumieniowo** (Apple TV / HomePod), dostają
   całą wypowiedź jako plik.
+- **Wystarczy powiedzieć asystentowi głosowemu:** „Komunikat do kuchni, obiad gotowy” zagra w
+  kuchni, z [Assist Router](https://github.com/witold-gren/home-assistant-assist-router), także Twoim
+  własnym głosem.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/witold-gren/home-assistant-intercom/main/images/speaking-pl.png" width="280" alt="Karta nagrywa wiadomość do salonu">
+  <img src="https://raw.githubusercontent.com/witold-gren/home-assistant-intercom/main/images/sent-pl.png" width="280" alt="Wiadomość wysłana">
+</p>
 
 ## Wymagania
 
@@ -72,6 +80,26 @@ response_variable: wynik
 `wynik` to `{"played": [{area, area_name, speaker, speaker_name}], "missing": [area]}`: pokój jest
 w `missing`, gdy żaden jego głośnik nie działa albo głośnik zawiódł.
 
+## Asystent głosowy
+
+Gdy agentem rozmowy w potoku głosowym jest [Assist Router](https://github.com/witold-gren/home-assistant-assist-router)
+(0.1.5 lub nowszy), zdanie zaczynające się od „ogłoszenie”, „komunikat”, „do wszystkich” albo
+„interkom” idzie przez interkom:
+
+- **Pokoje wymienione w zdaniu**: „Komunikat do kuchni i sypialni, obiad gotowy”. Liczą się odmienione
+  nazwy i aliasy obszarów. Bez nazwy pokoju wiadomość trafia wszędzie poza pokojem, w którym mówisz.
+- **Twój własny głos:** z [Assist Speaker ID](https://github.com/witold-gren/home-assistant-assist-speaker-id)
+  pokoje słyszą Twoje nagranie, bez niego wiadomość czytana syntezą mowy.
+- HomePody i inne głośniki „całego pliku” dostają ją jako plik, tak jak z karty.
+- Asystent odpowiada „Ogłoszenie wysłane” albo że żaden głośnik nie odpowiedział.
+
+W asystencie głosowym wyłącz **Preferuj lokalną obsługę poleceń**: inaczej wbudowane ogłoszenie
+Home Assistant przechwyci zdanie i przeczyta je na wszystkich satelitach.
+
+Każdy inny agent rozmowy albo automatyzacja może wywołać `intercom.announce`. Inne integracje mogą
+użyć `custom_components.intercom.api`: `is_set_up`, `areas_in_text` i `async_announce` (tekst albo
+bajty nagrania, do wskazanych pokoi albo do wszystkich poza jednym).
+
 ## Dla innych dashboardów
 
 - `POST /api/intercom/message?areas=<obszar>,<obszar>[&volume=0.5]` z nagraniem w treści
@@ -91,13 +119,17 @@ nieznanym). Sprawdź go albo dodaj pokojowi inny głośnik w opcjach.
 **HomePod milczy przy wiadomościach pisanych.** Zaznacz go w *Odtwarzaj jako cały plik* dla jego
 pokoju: dostanie wtedy całą wypowiedź zamiast strumienia.
 
+**Asystent głosowy traktuje „Komunikat, ...” jak pytanie.** Agentem rozmowy w potoku nie jest
+Assist Router albo jest starszy niż 0.1.5. Wybierz Assist Router w ustawieniach asystenta głosowego;
+z innym agentem wywołaj `intercom.announce` z wyzwalacza zdaniem.
+
 **„No text-to-speech engine”.** Wiadomości pisane potrzebują silnika zamiany tekstu na mowę: dodaj go
 albo wybierz w *Głos i nagrania*. Nagrania grają bez niego.
 
 ## Rozwój
 
-`make help` pokazuje kroki (`make setup`, `make test`, `make test-browser`, `make lint`,
-`make deploy`).
+`make help` pokazuje kroki (`make setup`, `make test`, `make test-browser`, `make screenshots`,
+`make lint`, `make deploy`).
 
 ## Licencja
 

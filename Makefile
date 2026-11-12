@@ -8,7 +8,7 @@ VENV := .venv
 HELP_LANG ?= $(if $(filter pl%,$(LANG)),pl,en)
 
 .DEFAULT_GOAL := help
-.PHONY: help setup test test-browser test-all lint format deploy clean
+.PHONY: help setup test test-browser test-all screenshots lint format deploy clean
 
 ##@ Start | Start
 
@@ -37,6 +37,9 @@ test: setup ## Tests of the integration | Testy integracji
 
 test-browser: setup ## Tests of the card in Google Chrome | Testy karty w Google Chrome
 	$(VENV)/bin/python -m pytest -q tests_browser -p no:homeassistant -p no:cacheprovider
+
+screenshots: setup ## Screenshots of the card for the README (images/) | Zrzuty karty do README (images/)
+	cd tests_browser && ../$(VENV)/bin/python screenshots.py
 
 lint: setup ## ruff: the checks and the formatting | ruff: sprawdzenie i formatowanie
 	$(VENV)/bin/ruff check .

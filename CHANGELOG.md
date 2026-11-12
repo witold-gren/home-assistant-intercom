@@ -13,4 +13,8 @@ First version.
   integration's folder and removed after 15 minutes.
 - `custom:intercom-card`: a button that records a message in a window like a phone's intercom, with
   the live wave of the voice; a text field without a microphone.
+- Voice assistant: with Assist Router 0.1.5+ "Announcement to the kitchen, ..." plays in the rooms
+  named (or every room but the one spoken in), in the speaker's own voice with Assist Speaker ID.
+  `custom_components.intercom.api` for other integrations: `is_set_up`, `areas_in_text`,
+  `async_announce`.
 - Translations: English, Polish.

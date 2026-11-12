@@ -16,6 +16,14 @@ a Sonos, a Google speaker or a Home Assistant voice satellite.
   integration is added; you choose their order in the options.
 - **Speakers that drop streamed speech** (an Apple TV / HomePod) get the whole spoken message as a
   file.
+- **Say it to your voice assistant:** "Announcement to the kitchen, dinner is ready" plays in the
+  kitchen, with [Assist Router](https://github.com/witold-gren/home-assistant-assist-router), even in
+  your own voice.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/witold-gren/home-assistant-intercom/main/images/speaking-en.png" width="280" alt="The card recording a message to the living room">
+  <img src="https://raw.githubusercontent.com/witold-gren/home-assistant-intercom/main/images/sent-en.png" width="280" alt="The message sent">
+</p>
 
 ## Requirements
 
@@ -70,6 +78,28 @@ response_variable: result
 `result` is `{"played": [{area, area_name, speaker, speaker_name}], "missing": [area]}`: a room is
 missing when none of its speakers is up or its speaker failed.
 
+## Voice assistant
+
+With [Assist Router](https://github.com/witold-gren/home-assistant-assist-router) (0.1.5 or newer) as
+the conversation agent of a voice pipeline, a sentence that starts with "announcement", "intercom" or
+"to everyone" (in Polish „ogłoszenie”, „komunikat”, „do wszystkich”, „interkom”) goes through the
+intercom:
+
+- **Rooms named in the sentence** get it: "Announcement to the kitchen and the bedroom, dinner is
+  ready" (inflected names and area aliases count). Without a room named, every room but the one you
+  are speaking in.
+- **Your own voice:** with [Assist Speaker ID](https://github.com/witold-gren/home-assistant-assist-speaker-id)
+  the rooms hear your recording; without it, the message read by text to speech.
+- HomePods and other whole-file speakers get it as a file, as with the card.
+- The assistant answers "Announcement sent", or that no speaker answered.
+
+In the voice assistant turn off **Prefer handling commands locally**: otherwise Home Assistant's
+built-in broadcast takes the sentence first and reads it on every satellite.
+
+Any other conversation agent or automation can call `intercom.announce`. Other integrations can use
+`custom_components.intercom.api`: `is_set_up`, `areas_in_text` and `async_announce` (a text, or the
+bytes of a recording, to named rooms or to every room but one).
+
 ## For other dashboards
 
 - `POST /api/intercom/message?areas=<area>,<area>[&volume=0.5]` with the recording as the body
@@ -89,13 +119,17 @@ add another speaker to the room in the options.
 **A HomePod says nothing for typed messages.** Tick it under *Play as a whole file* for its room:
 it then gets the whole spoken message instead of a stream.
 
+**The voice assistant reads "Announcement, ..." as a question.** The pipeline's conversation agent
+is not Assist Router, or Assist Router is older than 0.1.5. Choose Assist Router in the voice
+assistant's settings; with another agent, call `intercom.announce` from a sentence trigger.
+
 **"No text-to-speech engine".** Typed messages need a text-to-speech engine: add one, or choose it
 under *Voice and recordings*. Recordings play without one.
 
 ## Development
 
-`make help` lists the steps (`make setup`, `make test`, `make test-browser`, `make lint`,
-`make deploy`).
+`make help` lists the steps (`make setup`, `make test`, `make test-browser`, `make screenshots`,
+`make lint`, `make deploy`).
 
 ## License
 

@@ -176,14 +176,14 @@
     :host { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 16px;
       background: rgba(0, 0, 0, 0.35); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
       font-family: var(--paper-font-body1_-_font-family, -apple-system, system-ui, sans-serif); }
-    .card { position: relative; width: min(420px, 100%); min-height: 420px; display: flex; flex-direction: column;
+    .card { position: relative; width: min(420px, calc(100vw - 32px)); min-height: 420px; display: flex; flex-direction: column;
       align-items: center; box-sizing: border-box; padding: 56px 24px 28px; border-radius: 32px;
       background: #ffffff; color: #111; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25); }
     .close { position: absolute; top: 18px; right: 18px; width: 44px; height: 44px; border-radius: 50%;
       border: 1px solid #e3e3e6; background: #f6f6f7; color: #111; font-size: 22px; line-height: 1; cursor: pointer; }
     h2 { margin: 0; font-size: 30px; font-weight: 700; text-align: center; }
     .sub { margin-top: 4px; color: #8a8a8e; font-size: 17px; }
-    .wave { flex: 1; width: 100%; display: flex; align-items: center; justify-content: center; gap: 3px; min-height: 140px; }
+    .wave { flex: 1; width: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 3px; min-height: 140px; }
     .wave i { display: block; width: 3px; border-radius: 2px; background: #111; }
     .wave i.dot { width: 3px; height: 3px; background: #9a9aa0; }
     .note { min-height: 20px; margin: 4px 0 12px; color: #8a8a8e; font-size: 15px; text-align: center; }
@@ -191,6 +191,13 @@
       display: grid; place-items: center; box-shadow: 0 2px 8px rgba(240, 145, 62, 0.4); }
     .stop span { width: 22px; height: 22px; border-radius: 4px; background: #fff; }
     .stop[disabled] { opacity: 0.5; cursor: default; }
+    .badge { width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; color: #fff;
+      font-size: 34px; font-weight: 600; line-height: 1; }
+    .badge.busy { background: #c7c7cc; font-size: 22px; letter-spacing: 3px; }
+    .badge.ok { background: #34c759; box-shadow: 0 2px 8px rgba(52, 199, 89, 0.4); }
+    .badge.busy span { animation: pulse 1s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity: 0.35; } }
+    .action { width: 100%; display: flex; flex-direction: column; align-items: center; }
     .label { margin-top: 10px; color: #8a8a8e; font-size: 16px; }
     form { width: 100%; display: flex; gap: 8px; }
     input { flex: 1; min-width: 0; padding: 12px 14px; border-radius: 14px; border: 1px solid #d8d8dc; font: inherit; }
@@ -317,16 +324,23 @@
       });
     }
 
+    status(kind, mark, label) {
+      this.shadowRoot.querySelector(".action").innerHTML =
+        `<div class="badge ${kind}" aria-hidden="true"><span>${mark}</span></div><div class="label">${label}</div>`;
+    }
+
     async send(deliver) {
-      this.shadowRoot.querySelector(".action").innerHTML = "";
-      this.note(t(this.hass, "sending"));
+      this.note("");
+      this.status("busy", "•••", t(this.hass, "sending"));
       try {
         const result = await deliver();
         if (!result.played?.length) throw new Error(t(this.hass, "no_speaker"));
         const missing = (result.missing ?? []).length;
-        this.note(missing ? t(this.hass, "missing", { rooms: result.missing.join(", ") }) : t(this.hass, "sent"));
+        this.status("ok", "✓", t(this.hass, "sent"));
+        if (missing) this.note(t(this.hass, "missing", { rooms: result.missing.join(", ") }));
         setTimeout(() => this.close(), missing ? CLOSE_DELAY_MS * 2 : CLOSE_DELAY_MS);
       } catch (error) {
+        this.shadowRoot.querySelector(".action").innerHTML = "";
         this.note(t(this.hass, "failed", { reason: error?.message ?? error }));
       }
     }
