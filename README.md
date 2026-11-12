@@ -46,7 +46,9 @@ Copy `custom_components/intercom` to `config/custom_components/intercom` and res
 ## Setup
 
 **Settings → Devices & services → Add integration → Intercom.** Every area with a media player or a
-voice satellite becomes a room. Then, in **Configure**:
+voice satellite becomes a room: its voice satellites first, then its media players (televisions and a
+satellite's own player are left out; Apple TV / HomePod players get whole files). Then, in
+**Configure**:
 
 | Option | What it does |
 |---|---|

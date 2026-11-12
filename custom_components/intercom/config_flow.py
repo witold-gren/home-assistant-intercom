@@ -25,7 +25,7 @@ from .const import (
     DEFAULT_KEEP_MINUTES,
     DOMAIN,
 )
-from .rooms import SPEAKER_DOMAINS, suggested_speakers
+from .rooms import SPEAKER_DOMAINS, suggested_file_speakers, suggested_speakers
 
 CONF_AREA = "area"
 CONF_REMOVE = "remove"
@@ -37,7 +37,10 @@ def found_rooms(hass: HomeAssistant) -> dict[str, dict[str, Any]]:
     for area in ar.async_get(hass).async_list_areas():
         speakers = suggested_speakers(hass, area.id)
         if speakers:
-            rooms[area.id] = {CONF_SPEAKERS: speakers, CONF_FILE_SPEAKERS: []}
+            rooms[area.id] = {
+                CONF_SPEAKERS: speakers,
+                CONF_FILE_SPEAKERS: suggested_file_speakers(hass, speakers),
+            }
     return rooms
 
 
@@ -116,10 +119,12 @@ class IntercomOptionsFlow(OptionsFlow):
                     room[CONF_VOLUME] = user_input[CONF_VOLUME]
                 rooms[self._area] = room
             return self._save(**{CONF_ROOMS: rooms})
-        room = rooms.get(self._area) or {
-            CONF_SPEAKERS: suggested_speakers(self.hass, self._area),
-            CONF_FILE_SPEAKERS: [],
-        }
+        if (room := rooms.get(self._area)) is None:
+            speakers = suggested_speakers(self.hass, self._area)
+            room = {
+                CONF_SPEAKERS: speakers,
+                CONF_FILE_SPEAKERS: suggested_file_speakers(self.hass, speakers),
+            }
         volume = room.get(CONF_VOLUME)
         schema: dict[Any, Any] = {
             vol.Optional(CONF_SPEAKERS, default=room[CONF_SPEAKERS]): selector.EntitySelector(

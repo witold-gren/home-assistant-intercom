@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2
+
+- Better rooms when the integration is added: voice satellites first (made for announcements), then
+  media players; televisions and a satellite's own media player are left out, and Apple TV players
+  (HomePods) get whole files by themselves.
+
 ## 0.1.1
 
 - A whole-file speaker that is off is passed over for the room's next speaker: Apple TV shows a

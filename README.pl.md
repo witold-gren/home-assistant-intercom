@@ -48,7 +48,9 @@ Assistant.
 ## Konfiguracja
 
 **Ustawienia → Urządzenia i usługi → Dodaj integrację → Intercom.** Każdy obszar z odtwarzaczem albo
-satelitą głosowym staje się pokojem. Potem w **Konfiguruj**:
+satelitą głosowym staje się pokojem: najpierw jego satelity głosowe, potem odtwarzacze (bez
+telewizorów i bez odtwarzacza samej satelity; odtwarzacze Apple TV / HomePod dostają całe pliki).
+Potem w **Konfiguruj**:
 
 | Opcja | Co robi |
 |---|---|

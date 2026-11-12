@@ -49,8 +49,15 @@ def _entity_area(entity: er.RegistryEntry, devices: dr.DeviceRegistry) -> str | 
     return device.area_id if device else None
 
 
+# Players of these integrations get a whole file: Apple TV's HomePods drop streamed speech
+FILE_PLATFORMS = ("apple_tv",)
+
+
 def suggested_speakers(hass: HomeAssistant, area_id: str) -> list[str]:
-    """The speakers in an area: media players first (a HomePod, a Sonos), then voice satellites."""
+    """The speakers in an area: voice satellites first (made for announcements), then media players.
+
+    Left out: televisions, and a satellite's own media player (the same speaker twice).
+    """
     entities = er.async_get(hass)
     devices = dr.async_get(hass)
     found = [
@@ -61,8 +68,30 @@ def suggested_speakers(hass: HomeAssistant, area_id: str) -> list[str]:
         and not entity.hidden
         and _entity_area(entity, devices) == area_id
     ]
-    found.sort(key=lambda e: (SPEAKER_DOMAINS.index(e.domain), e.entity_id))
+    satellite_devices = {
+        e.device_id for e in found if e.domain == "assist_satellite" and e.device_id
+    }
+    found = [
+        e
+        for e in found
+        if e.domain == "assist_satellite"
+        or (
+            (e.device_class or e.original_device_class) != "tv"
+            and not (e.device_id and e.device_id in satellite_devices)
+        )
+    ]
+    found.sort(key=lambda e: (e.domain != "assist_satellite", e.entity_id))
     return [entity.entity_id for entity in found]
+
+
+def suggested_file_speakers(hass: HomeAssistant, speakers: Iterable[str]) -> list[str]:
+    """The speakers to give a whole file: Apple TV's (a HomePod)."""
+    entities = er.async_get(hass)
+    return [
+        s
+        for s in speakers
+        if (e := entities.async_get(s)) is not None and e.platform in FILE_PLATFORMS
+    ]
 
 
 def resolve_areas(hass: HomeAssistant, targets: str | Iterable[str]) -> list[str]:
