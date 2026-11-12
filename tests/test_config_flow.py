@@ -17,6 +17,7 @@ from custom_components.intercom.const import (
     CONF_ROOMS,
     CONF_SPEAKERS,
     CONF_TTS_ENGINE,
+    CONF_VOICE,
     CONF_VOLUME,
     DOMAIN,
 )
@@ -166,3 +167,53 @@ async def test_suggested_speakers_leave_out_televisions_and_doubles(
     assert speakers == [satellite, homepod, sonos]
     assert suggested_file_speakers(hass, speakers) == [homepod]
     assert found_rooms(hass)[room] == {CONF_SPEAKERS: speakers, CONF_FILE_SPEAKERS: [homepod]}
+
+
+async def test_the_voice_of_the_engine(hass: HomeAssistant, house, intercom, calls, speech) -> None:
+    offered = [
+        {"value": "pl_PL-vision", "label": "Vision"},
+        {"value": "pl_PL-jarvis", "label": "Jarvis"},
+    ]
+    with patch("custom_components.intercom.config_flow.voices", return_value=offered):
+        result = await hass.config_entries.options.async_init(intercom.entry_id)
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"], {"next_step_id": "settings"}
+        )
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"], {CONF_TTS_ENGINE: "tts.test_voice", CONF_KEEP_MINUTES: 15}
+        )
+        # The engine offers voices: the next step chooses one
+        assert result["step_id"] == "voice"
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"], {CONF_VOICE: "pl_PL-vision"}
+        )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert hass.data[DOMAIN].settings.voice == "pl_PL-vision"
+
+    # The typed message is spoken with that voice
+    await hass.services.async_call(
+        DOMAIN, "announce", {"areas": [house["bedroom"]], "message": "Obiad"}, blocking=True
+    )
+    assert speech["stream"].call_args.kwargs["options"] == {"voice": "pl_PL-vision"}
+
+
+async def test_the_rooms_are_shown_with_their_speakers(
+    hass: HomeAssistant, house, intercom
+) -> None:
+    result = await hass.config_entries.options.async_init(intercom.entry_id)
+    rooms = result["description_placeholders"]["rooms"]
+    assert "- **Living room**: living room homepod, living room voice" in rooms
+    assert "- **Kitchen**: kitchen voice" in rooms
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "room"}
+    )
+    options = result["data_schema"].schema["area"].config["options"]
+    labels = [o["label"] for o in options]
+    # The rooms set up first, with their speakers; then the areas without a room
+    assert labels[:3] == [
+        "Bedroom: bedroom speaker",
+        "Kitchen: kitchen voice",
+        "Living room: living room homepod, living room voice",
+    ]
+    assert "Hall" in labels[3:]

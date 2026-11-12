@@ -13,6 +13,7 @@ CONF_FILE_SPEAKERS: Final = "file_speakers"
 CONF_VOLUME: Final = "volume"
 CONF_TTS_ENGINE: Final = "tts_engine"
 CONF_LANGUAGE: Final = "language"
+CONF_VOICE: Final = "voice"
 CONF_KEEP_MINUTES: Final = "keep_minutes"
 
 DEFAULT_KEEP_MINUTES: Final = 15

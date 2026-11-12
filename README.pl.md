@@ -54,8 +54,8 @@ Potem w **Konfiguruj**:
 
 | Opcja | Co robi |
 |---|---|
-| **Pokój i jego głośniki** | Wybierz pokój, potem jego głośniki w kolejności, w jakiej są próbowane. *Odtwarzaj jako cały plik* dla głośników, które nie radzą sobie ze strumieniem (Apple TV / HomePod). *Głośność wiadomości* (puste: głośność głośnika). *Usuń ten pokój*. |
-| **Głos i nagrania** | Silnik zamiany tekstu na mowę i jego język (puste: pierwszy silnik i język Home Assistant) oraz jak długo trzymać wiadomości (15 minut). |
+| **Pokój i jego głośniki** | Menu pokazuje pokoje z ich głośnikami. Wybierz pokój (albo inny obszar, żeby go dodać), potem jego głośniki w kolejności, w jakiej są próbowane. *Odtwarzaj jako cały plik* dla głośników, które nie radzą sobie ze strumieniem (Apple TV / HomePod). *Głośność wiadomości* (puste: głośność głośnika). *Usuń ten pokój*. |
+| **Głos i nagrania** | Silnik zamiany tekstu na mowę i jego język (puste: pierwszy silnik i język Home Assistant) potem głos silnika, gdy ma ich kilka (puste: domyślny; satelity głosowe mówią głosem swojego asystenta), oraz jak długo trzymać wiadomości (15 minut). |
 
 ## Karta
 

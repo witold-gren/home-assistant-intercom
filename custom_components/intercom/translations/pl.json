@@ -17,11 +17,12 @@
         "menu_options": {
           "room": "Pokój i jego głośniki",
           "settings": "Głos i nagrania"
-        }
+        },
+        "description": "Pokoje teraz, każdy z głośnikami w kolejności, w jakiej są próbowane:\n\n{rooms}"
       },
       "room": {
         "title": "Pokój",
-        "description": "Wybierz pokój do zmiany albo dodania.",
+        "description": "Wybierz pokój do zmiany (z obecnymi głośnikami) albo inny obszar, żeby dodać go jako pokój.",
         "data": {
           "area": "Pokój"
         }
@@ -50,6 +51,16 @@
           "tts_engine": "Puste: pierwszy silnik w Home Assistant.",
           "language": "Puste: język Home Assistant.",
           "keep_minutes": "Nagrane i wypowiedziane wiadomości są usuwane po tym czasie."
+        }
+      },
+      "voice": {
+        "title": "Głos",
+        "description": "Głos silnika dla wiadomości pisanych i HomePodów. Satelity głosowe mówią głosem swojego asystenta.",
+        "data": {
+          "voice": "Głos"
+        },
+        "data_description": {
+          "voice": "Puste: domyślny głos silnika."
         }
       }
     }

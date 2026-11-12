@@ -21,14 +21,50 @@ from .const import (
     CONF_ROOMS,
     CONF_SPEAKERS,
     CONF_TTS_ENGINE,
+    CONF_VOICE,
     CONF_VOLUME,
     DEFAULT_KEEP_MINUTES,
     DOMAIN,
 )
-from .rooms import SPEAKER_DOMAINS, suggested_file_speakers, suggested_speakers
+from .rooms import SPEAKER_DOMAINS, area_name, suggested_file_speakers, suggested_speakers
 
 CONF_AREA = "area"
 CONF_REMOVE = "remove"
+
+
+def _speaker_names(hass: HomeAssistant, speakers: list[str]) -> str:
+    names = []
+    for speaker in speakers:
+        state = hass.states.get(speaker)
+        names.append(state.name if state else speaker)
+    return ", ".join(names)
+
+
+def rooms_summary(hass: HomeAssistant, rooms: dict[str, dict[str, Any]]) -> str:
+    """The rooms and their speakers in order, one line each (markdown)."""
+    lines = [
+        f"- **{area_name(hass, area)}**: {_speaker_names(hass, room.get(CONF_SPEAKERS) or [])}"
+        for area, room in sorted(rooms.items(), key=lambda item: area_name(hass, item[0]))
+    ]
+    return "\n".join(lines) or "-"
+
+
+def voices(
+    hass: HomeAssistant, engine: str | None, language: str
+) -> list[selector.SelectOptionDict]:
+    """The voices an engine offers for a language; none when it offers no choice."""
+    from homeassistant.components import tts
+    from homeassistant.components.tts.helper import get_engine_instance
+
+    try:
+        engine = engine or tts.async_default_engine(hass)
+        instance = get_engine_instance(hass, engine) if engine else None
+    except KeyError:  # text to speech is not set up
+        return []
+    found = getattr(instance, "async_get_supported_voices", lambda language: None)(language)
+    return [
+        selector.SelectOptionDict(value=voice.voice_id, label=voice.name) for voice in found or []
+    ]
 
 
 def found_rooms(hass: HomeAssistant) -> dict[str, dict[str, Any]]:
@@ -77,6 +113,7 @@ class IntercomOptionsFlow(OptionsFlow):
 
     def __init__(self) -> None:
         self._area: str | None = None
+        self._settings: dict[str, Any] = {}
 
     def _rooms(self) -> dict[str, dict[str, Any]]:
         return dict(self.config_entry.options.get(CONF_ROOMS) or {})
@@ -85,17 +122,42 @@ class IntercomOptionsFlow(OptionsFlow):
         return self.async_create_entry(data={**self.config_entry.options, **changes})
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        """What to change."""
-        return self.async_show_menu(step_id="init", menu_options=["room", "settings"])
+        """What to change; the rooms as they are set now."""
+        return self.async_show_menu(
+            step_id="init",
+            menu_options=["room", "settings"],
+            description_placeholders={"rooms": rooms_summary(self.hass, self._rooms())},
+        )
 
     async def async_step_room(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        """Choose the room (any area, also one without a speaker yet)."""
+        """Choose the room: the rooms set up first, with their speakers, then the other areas."""
         if user_input is not None:
             self._area = user_input[CONF_AREA]
             return await self.async_step_speakers()
+        rooms = self._rooms()
+        by_name = lambda area: area_name(self.hass, area)  # noqa: E731
+        speakers = {area: room.get(CONF_SPEAKERS) or [] for area, room in rooms.items()}
+        options = [
+            selector.SelectOptionDict(
+                value=area, label=f"{by_name(area)}: {_speaker_names(self.hass, speakers[area])}"
+            )
+            for area in sorted(rooms, key=by_name)
+        ] + [
+            selector.SelectOptionDict(value=area.id, label=area.name)
+            for area in sorted(ar.async_get(self.hass).async_list_areas(), key=lambda a: a.name)
+            if area.id not in rooms
+        ]
         return self.async_show_form(
             step_id="room",
-            data_schema=vol.Schema({vol.Required(CONF_AREA): selector.AreaSelector()}),
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_AREA): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=options, mode=selector.SelectSelectorMode.LIST
+                        )
+                    )
+                }
+            ),
         )
 
     async def async_step_speakers(
@@ -157,13 +219,12 @@ class IntercomOptionsFlow(OptionsFlow):
         """The voice, its language and how long messages are kept."""
         options = self.config_entry.options
         if user_input is not None:
-            return self._save(
-                **{
-                    CONF_TTS_ENGINE: user_input.get(CONF_TTS_ENGINE) or None,
-                    CONF_LANGUAGE: user_input.get(CONF_LANGUAGE) or None,
-                    CONF_KEEP_MINUTES: int(user_input[CONF_KEEP_MINUTES]),
-                }
-            )
+            self._settings = {
+                CONF_TTS_ENGINE: user_input.get(CONF_TTS_ENGINE) or None,
+                CONF_LANGUAGE: user_input.get(CONF_LANGUAGE) or None,
+                CONF_KEEP_MINUTES: int(user_input[CONF_KEEP_MINUTES]),
+            }
+            return await self.async_step_voice()
         schema = vol.Schema(
             {
                 vol.Optional(
@@ -185,3 +246,33 @@ class IntercomOptionsFlow(OptionsFlow):
             }
         )
         return self.async_show_form(step_id="settings", data_schema=schema)
+
+    async def async_step_voice(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """The voice of the engine, when it offers more than one."""
+        language = self._settings.get(CONF_LANGUAGE) or self.hass.config.language
+        offered = voices(self.hass, self._settings.get(CONF_TTS_ENGINE), language)
+        if user_input is not None or len(offered) < 2:
+            voice = (user_input or {}).get(CONF_VOICE) or None
+            if voice not in {v["value"] for v in offered}:
+                voice = None
+            return self._save(**self._settings, **{CONF_VOICE: voice})
+        current = self.config_entry.options.get(CONF_VOICE)
+        return self.async_show_form(
+            step_id="voice",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_VOICE,
+                        description={
+                            "suggested_value": current
+                            if current in {v["value"] for v in offered}
+                            else None
+                        },
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=offered, mode=selector.SelectSelectorMode.DROPDOWN
+                        )
+                    )
+                }
+            ),
+        )

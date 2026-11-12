@@ -30,6 +30,7 @@ class Settings:
     rooms: dict[str, Room]
     tts_engine: str | None = None
     language: str | None = None
+    voice: str | None = None
 
 
 def _tts_engine(hass: HomeAssistant, settings: Settings) -> str:
@@ -37,6 +38,10 @@ def _tts_engine(hass: HomeAssistant, settings: Settings) -> str:
     if not engine:
         raise HomeAssistantError("No text-to-speech engine: add one, or choose it in Intercom")
     return engine
+
+
+def _tts_options(settings: Settings) -> dict[str, Any] | None:
+    return {"voice": settings.voice} if settings.voice else None
 
 
 def _speaker_name(hass: HomeAssistant, entity_id: str) -> str:
@@ -56,6 +61,7 @@ async def _spoken_file(
         message,
         engine=_tts_engine(hass, settings),
         language=settings.language or hass.config.language,
+        options=_tts_options(settings),
     )
     extension, data = await tts.async_get_media_source_audio(hass, source)
     if extension == "wav" and (padded := with_tail_silence(data)):
@@ -151,6 +157,7 @@ async def async_announce(
                 message,
                 engine=_tts_engine(hass, settings),
                 language=settings.language or hass.config.language,
+                options=_tts_options(settings),
             )
 
     async def play(area: str, speaker: str, room: Room) -> tuple[str, str, Exception | None]:

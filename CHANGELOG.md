@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.4
+
+- The voice of the text-to-speech engine for typed messages (and the HomePods), when the engine
+  offers more than one: a step after *Voice and recordings*.
+- The options show the rooms with their speakers, and a room is chosen from that list (or another
+  area to add) instead of an empty area field.
+
 ## 0.1.3
 
 - The end of a message is no longer cut off on a HomePod: whole-file speakers get WAV messages

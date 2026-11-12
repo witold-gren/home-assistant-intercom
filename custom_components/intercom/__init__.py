@@ -39,6 +39,7 @@ from .const import (
     CONF_KEEP_MINUTES,
     CONF_LANGUAGE,
     CONF_TTS_ENGINE,
+    CONF_VOICE,
     CONF_VOLUME,
     DEFAULT_KEEP_MINUTES,
     DOMAIN,
@@ -77,6 +78,7 @@ def settings_from_entry(entry: ConfigEntry) -> Settings:
         rooms=rooms_from_options(options),
         tts_engine=options.get(CONF_TTS_ENGINE) or None,
         language=options.get(CONF_LANGUAGE) or None,
+        voice=options.get(CONF_VOICE) or None,
     )
 
 

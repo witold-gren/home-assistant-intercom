@@ -17,11 +17,12 @@
         "menu_options": {
           "room": "A room and its speakers",
           "settings": "Voice and recordings"
-        }
+        },
+        "description": "Rooms now, each with its speakers in the order they are tried:\n\n{rooms}"
       },
       "room": {
         "title": "Room",
-        "description": "Choose the room to change or add.",
+        "description": "Choose a room to change (with its speakers now), or another area to add as a room.",
         "data": {
           "area": "Room"
         }
@@ -50,6 +51,16 @@
           "tts_engine": "Empty: the first engine of Home Assistant.",
           "language": "Empty: the language of Home Assistant.",
           "keep_minutes": "Recorded and spoken messages are removed after this time."
+        }
+      },
+      "voice": {
+        "title": "Voice",
+        "description": "The voice of the engine for typed messages and the HomePods. Voice satellites speak with their own assistant's voice.",
+        "data": {
+          "voice": "Voice"
+        },
+        "data_description": {
+          "voice": "Empty: the engine's default voice."
         }
       }
     }
