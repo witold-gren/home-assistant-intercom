@@ -16,6 +16,8 @@ from .announce import async_announce
 from .const import DOMAIN, MAX_RECORDING_BYTES, MIME_TYPES, RECORDING_TYPES
 from .storage import media_id
 
+READ_CHUNK = 64 * 1024
+
 
 def recording_extension(content_type: str) -> str | None:
     """The file extension of a recording's type, or None for one we do not take."""
@@ -51,12 +53,16 @@ class IntercomMessageView(HomeAssistantView):
             return self.json_message(f"Unsupported recording type {request.content_type}", 415)
         if request.content_length and request.content_length > MAX_RECORDING_BYTES:
             return self.json_message("The recording is too long", 413)
-        body = await request.content.read(MAX_RECORDING_BYTES + 1)
-        if len(body) > MAX_RECORDING_BYTES:
-            return self.json_message("The recording is too long", 413)
+        # All of it: read(n) gives only what has arrived so far, which cut every recording longer
+        # than about 1.7 s
+        body = bytearray()
+        while chunk := await request.content.read(READ_CHUNK):
+            body += chunk
+            if len(body) > MAX_RECORDING_BYTES:
+                return self.json_message("The recording is too long", 413)
         if not body:
             return self.json_message("The recording is empty", 400)
-        name = await data.recordings.save(body, extension)
+        name = await data.recordings.save(bytes(body), extension)
         try:
             result = await async_announce(
                 hass,

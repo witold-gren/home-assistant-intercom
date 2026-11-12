@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.7
+
+- A recorded message is kept whole. `/api/intercom/message` read only what had arrived when it
+  started reading (`read(n)` does not wait for the rest), about 1.7 s of speech, so every longer
+  message ended cut off on every speaker.
+
 ## 0.1.6
 
 - The end of a recorded message is no longer cut off: the card goes on recording for half a second

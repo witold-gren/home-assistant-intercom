@@ -98,3 +98,25 @@ async def test_the_card_hears_the_rooms(
     # The card is offered to every dashboard, its link versioned
     url = intercom.js.call_args[0][1]  # type: ignore[attr-defined]
     assert url.startswith("/intercom_static/intercom-card.js?v=")
+
+
+async def test_a_long_recording_is_kept_whole(
+    hass: HomeAssistant, house, calls, intercom, hass_client
+) -> None:
+    """A browser sends a recording in pieces: all of it is kept, not the first piece."""
+    recording = WAV + bytes(range(256)) * 2000  # about 10 s of 24 kHz speech
+
+    async def pieces():
+        for start in range(0, len(recording), 16384):
+            yield recording[start : start + 16384]
+
+    client = await hass_client()
+    resp = await client.post(
+        f"/api/intercom/message?areas={house['kitchen']}",
+        data=pieces(),
+        headers={"Content-Type": "audio/wav"},
+    )
+    assert resp.status == 200
+    media = calls["announce"][0].data["media_id"]
+    stored = Path(hass.config.path("intercom")) / media.rsplit("/", 1)[1]
+    assert stored.read_bytes() == recording

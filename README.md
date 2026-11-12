@@ -126,10 +126,10 @@ it then gets the whole spoken message instead of a stream.
 is not Assist Router, or Assist Router is older than 0.1.5. Choose Assist Router in the voice
 assistant's settings; with another agent, call `intercom.announce` from a sentence trigger.
 
-**The end of a recorded message is cut off.** Up to 0.1.5 the card stopped recording the moment
-**Done** was tapped, which lost the last syllable and about 0.2 s still on its way from the microphone,
-for every speaker. From 0.1.6 it records half a second longer. A dashboard with its own recorder needs
-the same tail.
+**The end of a recorded message is cut off.** Up to 0.1.6 Home Assistant kept only the part of a
+recording that had arrived when it started reading it, about 1.7 s, so any longer message ended cut
+off on every speaker; 0.1.7 keeps all of it. The card also records half a second after **Done** (0.1.6),
+so the last syllable is not lost.
 
 **The end of a message is cut off on a HomePod.** Over AirPlay the sender closes the stream about
 1.5 s after the last sound, while a HomePod still holds up to 2 s in its buffer. From 0.1.3 the
