@@ -117,6 +117,12 @@ async def test_rooms_resolve_and_pick(hass: HomeAssistant, house) -> None:
     assert pick_speaker(hass, room) == HOMEPOD
     hass.states.async_set(HOMEPOD, "unavailable")
     assert pick_speaker(hass, room) == SATELLITE
+    # Off: a HomePod given whole files is lost (Apple TV plays nothing on it), another player is not
+    hass.states.async_set(HOMEPOD, "off")
+    assert pick_speaker(hass, room) == HOMEPOD
+    assert pick_speaker(
+        hass, Room(house["living"], (HOMEPOD, SATELLITE), frozenset({HOMEPOD}))
+    ) == (SATELLITE)
     # A file speaker that is not a speaker of the room is dropped
     rooms = rooms_from_options(
         {CONF_ROOMS: {"x": {CONF_SPEAKERS: [SATELLITE], CONF_FILE_SPEAKERS: [HOMEPOD]}}}

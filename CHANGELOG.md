@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+- A whole-file speaker that is off is passed over for the room's next speaker: Apple TV shows a
+  HomePod it lost as off and plays nothing on it, without an error. Other players that are off
+  (a Google speaker at rest) still play.
+
 ## 0.1.0
 
 First version.

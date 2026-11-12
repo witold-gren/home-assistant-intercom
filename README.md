@@ -113,7 +113,8 @@ bytes of a recording, to named rooms or to every room but one).
 dashboard is not on HTTPS, or the microphone permission was denied. Open Home Assistant over HTTPS
 and allow the microphone for it.
 
-**"No speaker answered".** None of the room's speakers is up (unavailable or unknown). Check them, or
+**"No speaker answered".** None of the room's speakers is up (unavailable or unknown; a whole-file
+speaker also when it is off, as Apple TV shows a HomePod it lost). Check them, or
 add another speaker to the room in the options.
 
 **A HomePod says nothing for typed messages.** Tick it under *Play as a whole file* for its room:

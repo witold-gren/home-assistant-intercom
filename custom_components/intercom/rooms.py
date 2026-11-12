@@ -6,7 +6,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
-from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
+from homeassistant.const import STATE_OFF, STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import area_registry as ar, device_registry as dr, entity_registry as er
 
@@ -94,8 +94,21 @@ def speaker_is_up(hass: HomeAssistant, entity_id: str) -> bool:
 
 
 def pick_speaker(hass: HomeAssistant, room: Room) -> str | None:
-    """The first speaker of a room that is up."""
-    return next((s for s in room.speakers if speaker_is_up(hass, s)), None)
+    """The first speaker of a room that is up.
+
+    A whole-file speaker that is off is not: Apple TV shows a HomePod it lost as off, and plays
+    nothing on it without an error. Other players that are off (a Google speaker at rest) still
+    play.
+    """
+    return next(
+        (
+            s
+            for s in room.speakers
+            if speaker_is_up(hass, s)
+            and not (s in room.file_speakers and hass.states.is_state(s, STATE_OFF))
+        ),
+        None,
+    )
 
 
 def area_name(hass: HomeAssistant, area_id: str) -> str:

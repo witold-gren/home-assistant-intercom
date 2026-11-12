@@ -114,7 +114,8 @@ nie jest otwarty przez HTTPS albo odmówiono dostępu do mikrofonu. Otwórz Home
 zezwól na mikrofon.
 
 **„Żaden głośnik nie odpowiedział”.** Żaden głośnik pokoju nie działa (jest niedostępny albo w stanie
-nieznanym). Sprawdź go albo dodaj pokojowi inny głośnik w opcjach.
+nieznanym; głośnik „całego pliku” także wyłączony, bo tak Apple TV pokazuje HomePoda, z którym
+straciło połączenie). Sprawdź go albo dodaj pokojowi inny głośnik w opcjach.
 
 **HomePod milczy przy wiadomościach pisanych.** Zaznacz go w *Odtwarzaj jako cały plik* dla jego
 pokoju: dostanie wtedy całą wypowiedź zamiast strumienia.
