@@ -217,3 +217,22 @@ async def test_the_rooms_are_shown_with_their_speakers(
         "Living room: living room homepod, living room voice",
     ]
     assert "Hall" in labels[3:]
+
+
+async def test_voices_of_an_engine_known_by_full_language_codes(hass: HomeAssistant) -> None:
+    """Piper offers its voices for "pl_PL", while the language of Home Assistant is "pl"."""
+    from types import SimpleNamespace
+
+    from custom_components.intercom.config_flow import voices
+
+    engine = SimpleNamespace(
+        supported_languages=["en_US", "pl_PL"],
+        async_get_supported_voices=lambda language: (
+            [SimpleNamespace(voice_id="pl_PL-vision", name="Vision")]
+            if language == "pl_PL"
+            else None
+        ),
+    )
+    with patch("homeassistant.components.tts.helper.get_engine_instance", return_value=engine):
+        assert voices(hass, "tts.piper", "pl") == [{"value": "pl_PL-vision", "label": "Vision"}]
+        assert voices(hass, "tts.piper", "de") == []

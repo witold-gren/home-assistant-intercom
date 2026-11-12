@@ -12,6 +12,7 @@ from homeassistant.config_entries import (
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import area_registry as ar, selector
+from homeassistant.util import language as language_util
 import voluptuous as vol
 
 from .const import (
@@ -61,7 +62,15 @@ def voices(
         instance = get_engine_instance(hass, engine) if engine else None
     except KeyError:  # text to speech is not set up
         return []
-    found = getattr(instance, "async_get_supported_voices", lambda language: None)(language)
+    get_voices = getattr(instance, "async_get_supported_voices", None)
+    if get_voices is None:
+        return []
+    # An engine may know the language only by its full code ("pl" -> "pl_PL")
+    supported = list(getattr(instance, "supported_languages", None) or [])
+    found = None
+    for candidate in [language, *language_util.matches(language, supported)]:
+        if found := get_voices(candidate):
+            break
     return [
         selector.SelectOptionDict(value=voice.voice_id, label=voice.name) for voice in found or []
     ]

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.5
+
+- The voice step also shows for an engine that knows the language only by its full code (Piper
+  offers its voices for `pl_PL` while Home Assistant's language is `pl`).
+
 ## 0.1.4
 
 - The voice of the text-to-speech engine for typed messages (and the HomePods), when the engine
