@@ -44,18 +44,17 @@
         "title": "Głos i nagrania",
         "data": {
           "tts_engine": "Silnik zamiany tekstu na mowę",
-          "language": "Język głosu",
           "keep_minutes": "Przechowuj nagrania (minuty)"
         },
         "data_description": {
           "tts_engine": "Puste: pierwszy silnik w Home Assistant.",
-          "language": "Puste: język Home Assistant.",
           "keep_minutes": "Nagrane i wypowiedziane wiadomości są usuwane po tym czasie."
-        }
+        },
+        "description": "Silnik zamiany tekstu na mowę i jak długo trzymać wiadomości. Głos wybierasz w następnym kroku."
       },
       "voice": {
         "title": "Głos",
-        "description": "Głos silnika dla wiadomości pisanych i HomePodów. Satelity głosowe mówią głosem swojego asystenta.",
+        "description": "Głos silnika dla wiadomości pisanych i HomePodów, w języku Home Assistant. Satelity głosowe mówią głosem swojego asystenta.",
         "data": {
           "voice": "Głos"
         },

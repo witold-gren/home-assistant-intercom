@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.8
+
+- *Voice and recordings* no longer asks for a language: the next step lists the engine's voices in
+  Home Assistant's language, and the chosen voice brings its language in the engine's own code.
+
 ## 0.1.7
 
 - A recorded message is kept whole. `/api/intercom/message` read only what had arrived when it

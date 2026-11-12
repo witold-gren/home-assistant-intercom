@@ -44,18 +44,17 @@
         "title": "Voice and recordings",
         "data": {
           "tts_engine": "Text-to-speech engine",
-          "language": "Language of the voice",
           "keep_minutes": "Keep recordings (minutes)"
         },
         "data_description": {
           "tts_engine": "Empty: the first engine of Home Assistant.",
-          "language": "Empty: the language of Home Assistant.",
           "keep_minutes": "Recorded and spoken messages are removed after this time."
-        }
+        },
+        "description": "The text-to-speech engine and how long messages are kept. The voice is chosen in the next step."
       },
       "voice": {
         "title": "Voice",
-        "description": "The voice of the engine for typed messages and the HomePods. Voice satellites speak with their own assistant's voice.",
+        "description": "The engine's voice for typed messages and the HomePods, in the language of Home Assistant. Voice satellites speak with their own assistant's voice.",
         "data": {
           "voice": "Voice"
         },

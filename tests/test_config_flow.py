@@ -174,7 +174,7 @@ async def test_the_voice_of_the_engine(hass: HomeAssistant, house, intercom, cal
         {"value": "pl_PL-vision", "label": "Vision"},
         {"value": "pl_PL-jarvis", "label": "Jarvis"},
     ]
-    with patch("custom_components.intercom.config_flow.voices", return_value=offered):
+    with patch("custom_components.intercom.config_flow.voices", return_value=("pl_PL", offered)):
         result = await hass.config_entries.options.async_init(intercom.entry_id)
         result = await hass.config_entries.options.async_configure(
             result["flow_id"], {"next_step_id": "settings"}
@@ -189,7 +189,10 @@ async def test_the_voice_of_the_engine(hass: HomeAssistant, house, intercom, cal
         )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
-    assert hass.data[DOMAIN].settings.voice == "pl_PL-vision"
+    settings = hass.data[DOMAIN].settings
+    assert settings.voice == "pl_PL-vision"
+    # The language goes with the voice, in the engine's own code; there is no field for it
+    assert settings.language == "pl_PL"
 
     # The typed message is spoken with that voice
     await hass.services.async_call(
@@ -234,5 +237,16 @@ async def test_voices_of_an_engine_known_by_full_language_codes(hass: HomeAssist
         ),
     )
     with patch("homeassistant.components.tts.helper.get_engine_instance", return_value=engine):
-        assert voices(hass, "tts.piper", "pl") == [{"value": "pl_PL-vision", "label": "Vision"}]
-        assert voices(hass, "tts.piper", "de") == []
+        assert voices(hass, "tts.piper", "pl") == (
+            "pl_PL",
+            [{"value": "pl_PL-vision", "label": "Vision"}],
+        )
+        assert voices(hass, "tts.piper", "de") == (None, [])
+
+
+async def test_the_settings_ask_no_language(hass: HomeAssistant, house, intercom) -> None:
+    result = await hass.config_entries.options.async_init(intercom.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "settings"}
+    )
+    assert "language" not in result["data_schema"].schema

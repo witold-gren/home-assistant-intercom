@@ -53,7 +53,7 @@ satellite's own player are left out; Apple TV / HomePod players get whole files)
 | Option | What it does |
 |---|---|
 | **A room and its speakers** | The menu lists the rooms with their speakers. Choose a room (or another area to add), then its speakers in the order they are tried. *Play as a whole file* for speakers that drop streamed speech (Apple TV / HomePod). *Volume of messages* (empty: the speaker's own). *Remove this room*. |
-| **Voice and recordings** | The text-to-speech engine and its language (empty: Home Assistant's first engine and language) then the engine's voice when it offers more than one (empty: its default; voice satellites keep their assistant's voice), and how long messages are kept (15 minutes). |
+| **Voice and recordings** | The text-to-speech engine (empty: Home Assistant's first) and how long messages are kept (15 minutes); next, the engine's voice in Home Assistant's language when it offers more than one (empty: its default). The language comes with the voice. Voice satellites keep their assistant's voice. |
 
 ## The card
 

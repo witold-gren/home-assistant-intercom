@@ -52,8 +52,9 @@ def rooms_summary(hass: HomeAssistant, rooms: dict[str, dict[str, Any]]) -> str:
 
 def voices(
     hass: HomeAssistant, engine: str | None, language: str
-) -> list[selector.SelectOptionDict]:
-    """The voices an engine offers for a language; none when it offers no choice."""
+) -> tuple[str | None, list[selector.SelectOptionDict]]:
+    """The voices an engine offers for a language, and the engine's own code of that language
+    ("pl" -> "pl_PL" for Piper); no voices when it offers no choice."""
     from homeassistant.components import tts
     from homeassistant.components.tts.helper import get_engine_instance
 
@@ -61,19 +62,17 @@ def voices(
         engine = engine or tts.async_default_engine(hass)
         instance = get_engine_instance(hass, engine) if engine else None
     except KeyError:  # text to speech is not set up
-        return []
+        return None, []
     get_voices = getattr(instance, "async_get_supported_voices", None)
     if get_voices is None:
-        return []
-    # An engine may know the language only by its full code ("pl" -> "pl_PL")
+        return None, []
     supported = list(getattr(instance, "supported_languages", None) or [])
-    found = None
     for candidate in [language, *language_util.matches(language, supported)]:
         if found := get_voices(candidate):
-            break
-    return [
-        selector.SelectOptionDict(value=voice.voice_id, label=voice.name) for voice in found or []
-    ]
+            return candidate, [
+                selector.SelectOptionDict(value=voice.voice_id, label=voice.name) for voice in found
+            ]
+    return None, []
 
 
 def found_rooms(hass: HomeAssistant) -> dict[str, dict[str, Any]]:
@@ -225,12 +224,11 @@ class IntercomOptionsFlow(OptionsFlow):
     async def async_step_settings(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """The voice, its language and how long messages are kept."""
+        """The engine and how long messages are kept; its voice comes next."""
         options = self.config_entry.options
         if user_input is not None:
             self._settings = {
                 CONF_TTS_ENGINE: user_input.get(CONF_TTS_ENGINE) or None,
-                CONF_LANGUAGE: user_input.get(CONF_LANGUAGE) or None,
                 CONF_KEEP_MINUTES: int(user_input[CONF_KEEP_MINUTES]),
             }
             return await self.async_step_voice()
@@ -240,10 +238,6 @@ class IntercomOptionsFlow(OptionsFlow):
                     CONF_TTS_ENGINE,
                     description={"suggested_value": options.get(CONF_TTS_ENGINE)},
                 ): selector.EntitySelector(selector.EntitySelectorConfig(domain="tts")),
-                vol.Optional(
-                    CONF_LANGUAGE,
-                    description={"suggested_value": options.get(CONF_LANGUAGE)},
-                ): selector.LanguageSelector(),
                 vol.Required(
                     CONF_KEEP_MINUTES,
                     default=options.get(CONF_KEEP_MINUTES, DEFAULT_KEEP_MINUTES),
@@ -257,14 +251,18 @@ class IntercomOptionsFlow(OptionsFlow):
         return self.async_show_form(step_id="settings", data_schema=schema)
 
     async def async_step_voice(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        """The voice of the engine, when it offers more than one."""
-        language = self._settings.get(CONF_LANGUAGE) or self.hass.config.language
-        offered = voices(self.hass, self._settings.get(CONF_TTS_ENGINE), language)
+        """The voice of the engine in the language of Home Assistant, when it offers more than one.
+        The language goes with it, in the engine's own code."""
+        language, offered = voices(
+            self.hass, self._settings.get(CONF_TTS_ENGINE), self.hass.config.language
+        )
         if user_input is not None or len(offered) < 2:
             voice = (user_input or {}).get(CONF_VOICE) or None
             if voice not in {v["value"] for v in offered}:
                 voice = None
-            return self._save(**self._settings, **{CONF_VOICE: voice})
+            return self._save(
+                **self._settings, **{CONF_VOICE: voice, CONF_LANGUAGE: language if voice else None}
+            )
         current = self.config_entry.options.get(CONF_VOICE)
         return self.async_show_form(
             step_id="voice",
