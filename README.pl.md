@@ -126,6 +126,11 @@ pokoju: dostanie wtedy całą wypowiedź zamiast strumienia.
 Assist Router albo jest starszy niż 0.1.5. Wybierz Assist Router w ustawieniach asystenta głosowego;
 z innym agentem wywołaj `intercom.announce` z wyzwalacza zdaniem.
 
+**Na HomePodzie koniec wiadomości jest obcięty.** Przez AirPlay nadawca zamyka strumień ok. 1,5 s
+po ostatnim dźwięku, a HomePod ma jeszcze w buforze do 2 s. Od wersji 0.1.3 interkom dokłada 2 s
+ciszy na końcu wiadomości WAV dla głośników „całego pliku”: zaznacz HomePoda w *Odtwarzaj jako cały
+plik* dla jego pokoju. Nagrania w innych formatach (webm, mp3) grają takie, jakie przyszły.
+
 **„No text-to-speech engine”.** Wiadomości pisane potrzebują silnika zamiany tekstu na mowę: dodaj go
 albo wybierz w *Głos i nagrania*. Nagrania grają bez niego.
 

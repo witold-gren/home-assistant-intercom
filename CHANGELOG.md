@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3
+
+- The end of a message is no longer cut off on a HomePod: whole-file speakers get WAV messages
+  (recordings and spoken text) with 2 s of silence at their end. Over AirPlay the stream was closed
+  about 1.5 s after the last sound while the HomePod still held up to 2 s in its buffer.
+
 ## 0.1.2
 
 - Better rooms when the integration is added: voice satellites first (made for announcements), then

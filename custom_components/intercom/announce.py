@@ -18,7 +18,7 @@ from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import entity_registry as er
 
 from .rooms import Room, area_name, pick_speaker, resolve_areas
-from .storage import Recordings, media_id
+from .storage import Recordings, media_id, with_tail_silence
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -58,6 +58,8 @@ async def _spoken_file(
         language=settings.language or hass.config.language,
     )
     extension, data = await tts.async_get_media_source_audio(hass, source)
+    if extension == "wav" and (padded := with_tail_silence(data)):
+        data = padded
     return media_id(await recordings.save(data, extension))
 
 
@@ -133,8 +135,12 @@ async def async_announce(
     # Speech for the media players: one whole file, or the text-to-speech stream
     file_media: str | None = None
     stream_media: str | None = None
+    whole_file = any(speaker in room.file_speakers for _, speaker, room in chosen)
+    if media and whole_file and media.startswith(media_id("")):
+        # Our own recording: a copy that plays to its end on a whole-file speaker
+        file_media = media_id(await recordings.for_whole_file(media.removeprefix(media_id(""))))
     if message and not media:
-        if any(speaker in room.file_speakers for _, speaker, room in chosen):
+        if whole_file:
             file_media = await _spoken_file(hass, settings, recordings, message)
         if any(
             speaker.startswith("media_player.") and speaker not in room.file_speakers
@@ -149,7 +155,7 @@ async def async_announce(
 
     async def play(area: str, speaker: str, room: Room) -> tuple[str, str, Exception | None]:
         if media:
-            item = media
+            item = file_media if file_media and speaker in room.file_speakers else media
         elif speaker.startswith("assist_satellite."):
             item = None
         else:
