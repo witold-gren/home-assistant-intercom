@@ -99,3 +99,29 @@ async def test_a_speaker_that_fails_leaves_its_room_missing(
 async def test_a_message_or_a_recording_is_needed(hass: HomeAssistant, house, intercom) -> None:
     with pytest.raises(ServiceValidationError):
         await announce(hass, areas=house["kitchen"], message="  ")
+
+
+async def test_a_homepod_that_fails_hands_the_message_to_the_next_speaker(
+    hass: HomeAssistant, house, calls, speech, intercom
+) -> None:
+    # A HomePod that is off yet shown as idle: Apple TV raises OSError, no HomeAssistantError
+    async def unreachable(call):
+        raise OSError(113, "Connect call failed")
+
+    hass.services.async_register("media_player", "play_media", unreachable)
+    result = await announce(hass, areas=house["living"], message="Hi")
+    assert [p["speaker"] for p in result["played"]] == [SATELLITE]
+    assert result["missing"] == []
+    assert calls["announce"][0].data == {"entity_id": SATELLITE, "message": "Hi"}
+
+
+async def test_a_room_whose_speakers_all_fail_is_missing_without_an_error(
+    hass: HomeAssistant, house, speech, intercom
+) -> None:
+    async def unreachable(call):
+        raise OSError(113, "Connect call failed")
+
+    hass.services.async_register("media_player", "play_media", unreachable)
+    hass.services.async_register("assist_satellite", "announce", unreachable)
+    result = await announce(hass, areas=house["living"], message="Hi")
+    assert result == {"played": [], "missing": [house["living"]]}

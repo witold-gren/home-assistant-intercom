@@ -122,22 +122,24 @@ def speaker_is_up(hass: HomeAssistant, entity_id: str) -> bool:
     return state is not None and state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN)
 
 
-def pick_speaker(hass: HomeAssistant, room: Room) -> str | None:
-    """The first speaker of a room that is up.
+def up_speakers(hass: HomeAssistant, room: Room) -> list[str]:
+    """The speakers of a room that are up, in their order: the first plays, the next stand by.
 
     A whole-file speaker that is off is not: Apple TV shows a HomePod it lost as off, and plays
     nothing on it without an error. Other players that are off (a Google speaker at rest) still
     play.
     """
-    return next(
-        (
-            s
-            for s in room.speakers
-            if speaker_is_up(hass, s)
-            and not (s in room.file_speakers and hass.states.is_state(s, STATE_OFF))
-        ),
-        None,
-    )
+    return [
+        s
+        for s in room.speakers
+        if speaker_is_up(hass, s)
+        and not (s in room.file_speakers and hass.states.is_state(s, STATE_OFF))
+    ]
+
+
+def pick_speaker(hass: HomeAssistant, room: Room) -> str | None:
+    """The first speaker of a room that is up."""
+    return next(iter(up_speakers(hass, room)), None)
 
 
 def area_name(hass: HomeAssistant, area_id: str) -> str:

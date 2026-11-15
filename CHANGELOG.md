@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.9
+
+- A speaker that fails hands the message to the next speaker of its room. A HomePod that is off can
+  still show as idle; playing on it raised `OSError` (not a Home Assistant error), which nothing
+  caught, so the card said "Not sent: HTTP 500" and no other speaker of the room spoke. Now any
+  error of a speaker is logged and the next one that is up plays the message; a room is missing only
+  when all of its speakers failed.
+
 ## 0.1.8
 
 - *Voice and recordings* no longer asks for a language: the next step lists the engine's voices in

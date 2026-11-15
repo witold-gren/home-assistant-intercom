@@ -119,6 +119,11 @@ and allow the microphone for it.
 speaker also when it is off, as Apple TV shows a HomePod it lost). Check them, or
 add another speaker to the room in the options.
 
+**"Not sent: HTTP 500" while a speaker of the room is off.** Up to 0.1.8 a speaker that failed with
+an error of its own integration (a HomePod that is off yet shown as idle: `Connect call failed`)
+stopped the message. From 0.1.9 the next speaker of the room plays it: keep a second speaker in the
+room (e.g. a Home Assistant Voice), in the options under the room's speakers.
+
 **A HomePod says nothing for typed messages.** Tick it under *Play as a whole file* for its room:
 it then gets the whole spoken message instead of a stream.
 

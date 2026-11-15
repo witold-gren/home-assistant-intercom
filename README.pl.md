@@ -119,6 +119,11 @@ zezwól na mikrofon.
 nieznanym; głośnik „całego pliku” także wyłączony, bo tak Apple TV pokazuje HomePoda, z którym
 straciło połączenie). Sprawdź go albo dodaj pokojowi inny głośnik w opcjach.
 
+**„Nie wysłano: HTTP 500”, gdy głośnik pokoju jest wyłączony.** Do 0.1.8 głośnik, który zawiódł z błędem
+własnej integracji (HomePod wyłączony, a pokazany jako bezczynny: `Connect call failed`), zatrzymywał
+wiadomość. Od 0.1.9 odtwarza ją następny głośnik pokoju: trzymaj w pokoju drugi głośnik (np. Home
+Assistant Voice), w opcjach pod głośnikami pokoju.
+
 **HomePod milczy przy wiadomościach pisanych.** Zaznacz go w *Odtwarzaj jako cały plik* dla jego
 pokoju: dostanie wtedy całą wypowiedź zamiast strumienia.
 

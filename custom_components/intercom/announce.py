@@ -1,8 +1,9 @@
 """Speak a message in rooms: text through text-to-speech, or a recording.
 
-Each room plays it on the first of its speakers that is up. A voice satellite announces it; a media
-player plays it as an announcement. A speaker that drops streamed speech (an Apple TV / HomePod)
-gets the whole spoken message as a file instead.
+Each room plays it on the first of its speakers that is up; when that one fails (a HomePod that
+is off yet shown as idle), the next one plays it. A voice satellite announces it; a media player
+plays it as an announcement. A speaker that drops streamed speech (an Apple TV / HomePod) gets the
+whole spoken message as a file instead.
 """
 
 from __future__ import annotations
@@ -17,7 +18,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import entity_registry as er
 
-from .rooms import Room, area_name, pick_speaker, resolve_areas
+from .rooms import Room, area_name, resolve_areas, up_speakers
 from .storage import Recordings, media_id, with_tail_silence
 
 _LOGGER = logging.getLogger(__name__)
@@ -128,20 +129,22 @@ async def async_announce(
     if not areas:
         raise ServiceValidationError("Give at least one room")
 
-    chosen: list[tuple[str, str, Room]] = []
+    chosen: list[tuple[str, list[str], Room]] = []
     missing: list[str] = []
     for area in areas:
         room = settings.rooms.get(area)
-        speaker = pick_speaker(hass, room) if room else None
-        if speaker and room:
-            chosen.append((area, speaker, room))
+        speakers = up_speakers(hass, room) if room else []
+        if speakers and room:
+            chosen.append((area, speakers, room))
         else:
             missing.append(area)
+    # Every speaker that may play, the first of each room and those standing by
+    candidates = [(speaker, room) for _, speakers, room in chosen for speaker in speakers]
 
     # Speech for the media players: one whole file, or the text-to-speech stream
     file_media: str | None = None
     stream_media: str | None = None
-    whole_file = any(speaker in room.file_speakers for _, speaker, room in chosen)
+    whole_file = any(speaker in room.file_speakers for speaker, room in candidates)
     if media and whole_file and media.startswith(media_id("")):
         # Our own recording: a copy that plays to its end on a whole-file speaker
         file_media = media_id(await recordings.for_whole_file(media.removeprefix(media_id(""))))
@@ -150,7 +153,7 @@ async def async_announce(
             file_media = await _spoken_file(hass, settings, recordings, message)
         if any(
             speaker.startswith("media_player.") and speaker not in room.file_speakers
-            for _, speaker, room in chosen
+            for speaker, room in candidates
         ):
             stream_media = tts.generate_media_source_id(
                 hass,
@@ -160,29 +163,38 @@ async def async_announce(
                 options=_tts_options(settings),
             )
 
-    async def play(area: str, speaker: str, room: Room) -> tuple[str, str, Exception | None]:
+    async def play_on(speaker: str, room: Room) -> None:
         if media:
             item = file_media if file_media and speaker in room.file_speakers else media
         elif speaker.startswith("assist_satellite."):
             item = None
         else:
             item = file_media if speaker in room.file_speakers else stream_media
-        try:
-            await _play(
-                hass,
-                speaker,
-                message=message,
-                media=item,
-                volume=volume if volume is not None else room.volume,
-            )
-        except (HomeAssistantError, ValueError) as err:
-            return area, speaker, err
-        return area, speaker, None
+        await _play(
+            hass,
+            speaker,
+            message=message,
+            media=item,
+            volume=volume if volume is not None else room.volume,
+        )
+
+    async def play(area: str, speakers: list[str], room: Room) -> tuple[str, str | None]:
+        for speaker in speakers:
+            try:
+                await play_on(speaker, room)
+            except asyncio.CancelledError:
+                raise
+            except Exception as err:  # any error of a speaker hands over to the next one
+                # A speaker that cannot be reached raises what its integration raises (OSError of
+                # a HomePod that is off), not only HomeAssistantError
+                _LOGGER.warning("Intercom: %s in %s failed: %s", speaker, area, err)
+                continue
+            return area, speaker
+        return area, None
 
     played: list[dict[str, str]] = []
-    for area, speaker, error in await asyncio.gather(*(play(*c) for c in chosen)):
-        if error:
-            _LOGGER.warning("Intercom: %s in %s failed: %s", speaker, area, error)
+    for area, speaker in await asyncio.gather(*(play(*c) for c in chosen)):
+        if speaker is None:
             missing.append(area)
             continue
         played.append(
