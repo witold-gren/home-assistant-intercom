@@ -88,12 +88,33 @@ async def test_a_recording_everywhere_but_where_it_was_said(
 async def test_a_text_to_named_rooms(
     hass: HomeAssistant, house: dict[str, str], intercom: MockConfigEntry, calls, speech
 ) -> None:
-    result = await intercom_api.async_announce(
-        hass, [house["living"]], message="Obiad!", exclude=SATELLITE
-    )
-    # Named rooms are kept even when the message comes from there
+    result = await intercom_api.async_announce(hass, [house["living"]], message="Obiad!")
     assert [p["speaker"] for p in result["played"]] == [HOMEPOD]
     assert calls["play_media"][0].data["media_content_id"].startswith("media-source://intercom/")
+
+
+async def test_the_room_it_was_said_in_is_left_out_of_named_rooms(
+    hass: HomeAssistant, house: dict[str, str], intercom: MockConfigEntry, calls, speech
+) -> None:
+    # "To the kitchen and the living room", said in the living room: the satellite there still
+    # runs this pipeline - announcing on it hung the pipeline for minutes
+    result = await intercom_api.async_announce(
+        hass, [house["kitchen"], house["living"]], message="Obiad!", exclude=SATELLITE
+    )
+    assert {p["area"] for p in result["played"]} == {house["kitchen"]}
+    assert all(c.data["entity_id"] != SATELLITE for c in calls["announce"])
+    assert all(c.data["entity_id"] != HOMEPOD for c in calls["play_media"])
+
+
+async def test_only_the_room_it_was_said_in_named_means_everybody_else(
+    hass: HomeAssistant, house: dict[str, str], intercom: MockConfigEntry, calls, speech
+) -> None:
+    # „Ogłoszenie. Przyjdźcie do salonu”, said in the living room: the room is where to come
+    result = await intercom_api.async_announce(
+        hass, [house["living"]], message="Przyjdźcie do salonu", exclude=SATELLITE
+    )
+    assert {p["area"] for p in result["played"]} == {house["kitchen"], house["bedroom"]}
+    assert all(c.data["entity_id"] != SATELLITE for c in calls["announce"])
 
 
 async def test_only_the_room_it_came_from(

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.10
+
+- An announcement never plays in the room it was said in. "Announcement, come to the bedroom", said
+  to the bedroom's voice satellite, named the bedroom, so the message went to that very satellite
+  while it was still running the pipeline of the announcement: the pipeline hung for minutes
+  (cancelling it recursed until `Stack overflow`) and the satellite answered only after it
+  reconnected. Now the room of the satellite is left out of the named rooms, and a sentence that
+  named only that room goes to every other room.
+
 ## 0.1.9
 
 - A speaker that fails hands the message to the next speaker of its room. A HomePod that is off can

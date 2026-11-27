@@ -89,7 +89,8 @@ intercom:
 
 - **Rooms named in the sentence** get it: "Announcement to the kitchen and the bedroom, dinner is
   ready" (inflected names and area aliases count). Without a room named, every room but the one you
-  are speaking in.
+  are speaking in. The room you are speaking in never gets it: "Announcement, come to the bedroom",
+  said in the bedroom, goes to every other room.
 - **Your own voice:** with [Assist Speaker ID](https://github.com/witold-gren/home-assistant-assist-speaker-id)
   the rooms hear your recording; without it, the message read by text to speech.
 - HomePods and other whole-file speakers get it as a file, as with the card.
@@ -123,6 +124,13 @@ add another speaker to the room in the options.
 an error of its own integration (a HomePod that is off yet shown as idle: `Connect call failed`)
 stopped the message. From 0.1.9 the next speaker of the room plays it: keep a second speaker in the
 room (e.g. a Home Assistant Voice), in the options under the room's speakers.
+
+**The voice satellite thinks for minutes after "Announcement, come to the bedroom".** Up to 0.1.9 a
+room named in the sentence got the message even when it was the room it was said in, so it went to
+the very satellite still busy with that announcement; the log shows `Stack overflow (used … kB)` from
+`esphome/assist_satellite.py` and `Intercom: assist_satellite.… failed: Stack overflow`, and the
+satellite answers only after it reconnects. From 0.1.10 that room is left out and the message goes
+to the other rooms.
 
 **A HomePod says nothing for typed messages.** Tick it under *Play as a whole file* for its room:
 it then gets the whole spoken message instead of a stream.

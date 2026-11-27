@@ -88,16 +88,22 @@ async def async_announce(
 ) -> dict[str, Any] | None:
     """Speak `message`, or play `audio` (the bytes of a recording), in rooms.
 
-    `areas`: area ids or entities in them; None means every room except the area of `exclude`
-    (e.g. the voice satellite that heard the announcement). Returns the result of
+    `areas`: area ids or entities in them; None means every room. The area of `exclude` (e.g. the
+    voice satellite that heard the announcement) never plays it. Returns the result of
     `intercom.announce` ({"played": [...], "missing": [...]}), or None when the intercom is not
     set up.
     """
     data = hass.data.get(DOMAIN)
     if data is None:
         return None
+    here = set(resolve_areas(hass, exclude)) if exclude else set()
+    if areas is not None:
+        # The room it was said in is never a target: its people heard the speaker, and its voice
+        # satellite is still running the very pipeline that announces - an announcement on it
+        # hangs that pipeline (cancelling it recurses until a stack overflow). A sentence that
+        # named only that room ("come to the bedroom", said in the bedroom) means everybody else.
+        areas = [area for area in resolve_areas(hass, areas) if area not in here] or None
     if areas is None:
-        here = set(resolve_areas(hass, exclude)) if exclude else set()
         areas = [area for area in data.settings.rooms if area not in here]
         if not areas:
             return {"played": [], "missing": []}

@@ -90,6 +90,8 @@ Gdy agentem rozmowy w potoku głosowym jest [Assist Router](https://github.com/w
 
 - **Pokoje wymienione w zdaniu**: „Komunikat do kuchni i sypialni, obiad gotowy”. Liczą się odmienione
   nazwy i aliasy obszarów. Bez nazwy pokoju wiadomość trafia wszędzie poza pokojem, w którym mówisz.
+  Pokój, w którym mówisz, nigdy jej nie dostaje: „Ogłoszenie, przyjdźcie do sypialni” powiedziane
+  w sypialni trafia do wszystkich pozostałych pokoi.
 - **Twój własny głos:** z [Assist Speaker ID](https://github.com/witold-gren/home-assistant-assist-speaker-id)
   pokoje słyszą Twoje nagranie, bez niego wiadomość czytana syntezą mowy.
 - HomePody i inne głośniki „całego pliku” dostają ją jako plik, tak jak z karty.
@@ -123,6 +125,13 @@ straciło połączenie). Sprawdź go albo dodaj pokojowi inny głośnik w opcjac
 własnej integracji (HomePod wyłączony, a pokazany jako bezczynny: `Connect call failed`), zatrzymywał
 wiadomość. Od 0.1.9 odtwarza ją następny głośnik pokoju: trzymaj w pokoju drugi głośnik (np. Home
 Assistant Voice), w opcjach pod głośnikami pokoju.
+
+**Satelita głosowy „myśli” kilka minut po „Ogłoszenie, przyjdźcie do sypialni”.** Do 0.1.9 pokój
+wymieniony w zdaniu dostawał wiadomość także wtedy, gdy to w nim padło ogłoszenie, więc trafiała ona
+do tego samego satelity, który wciąż je obsługiwał; w logu widać `Stack overflow (used … kB)`
+z `esphome/assist_satellite.py` i `Intercom: assist_satellite.… failed: Stack overflow`, a satelita
+odpowiada dopiero po ponownym połączeniu. Od 0.1.10 ten pokój jest pomijany, a wiadomość idzie do
+pozostałych pokoi.
 
 **HomePod milczy przy wiadomościach pisanych.** Zaznacz go w *Odtwarzaj jako cały plik* dla jego
 pokoju: dostanie wtedy całą wypowiedź zamiast strumienia.
